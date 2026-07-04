@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上海电满家工商业项目管理平台</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f5f7fa; color: #222; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: #fff; padding: 24px 32px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+header h1 { font-size: 24px; margin-bottom: 4px; }
+header p { opacity: 0.9; font-size: 14px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab { padding: 10px 20px; background: #fff; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+.tab.active { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+.tab:hover:not(.active) { border-color: #3b82f6; color: #3b82f6; }
+.panel { display: none; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.panel.active { display: block; }
+.section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #1e3a8a; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+.project-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; padding: 16px; transition: all 0.2s; }
+.project-card:hover { border-color: #3b82f6; }
+.project-card h3 { font-size: 16px; color: #1e3a8a; margin-bottom: 8px; }
+.project-card .meta { font-size: 13px; color: #64748b; line-height: 1.8; }
+.project-card .actions { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-progress { background: #dbeafe; color: #1e40af; }
+.status-done { background: #d1fae5; color: #065f46; }
+.status-fail { background: #fee2e2; color: #991b1b; }
+.btn { padding: 10px 20px; background: #1e3a8a; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.2s; }
+.btn:hover { background: #1e40af; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-secondary { background: #64748b; }
+.btn-success { background: #10b981; }
+.btn-warn { background: #f59e0b; }
+.btn-danger { background: #ef4444; }
+.btn-outline { background: #fff; color: #1e3a8a; border: 1px solid #1e3a8a; }
+input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; font-family: inherit; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: #334155; }
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; overflow-y: auto; }
+.modal.active { display: flex; align-items: flex-start; justify-content: center; }
+.modal-content { background: #fff; border-radius: 12px; max-width: 900px; width: 100%; margin: 20px auto; padding: 28px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; }
+.modal-header h2 { font-size: 20px; color: #1e3a8a; }
+.close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
+.eval-block { background: #f8fafc; border-left: 4px solid #3b82f6; padding: 16px; margin-bottom: 16px; border-radius: 6px; }
+.eval-block h4 { color: #1e3a8a; margin-bottom: 12px; font-size: 15px; }
+.check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; }
+.check-item:last-child { border: none; }
+.check-item label { flex: 1; font-size: 13px; }
+.radio-group { display: flex; gap: 12px; flex-wrap: wrap; }
+.radio-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.radio-group input { width: auto; }
+.upload-zone { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; margin-top: 8px; font-size: 13px; color: #64748b; }
+.upload-zone:hover { border-color: #3b82f6; background: #f0f9ff; }
+.file-list { margin-top: 8px; }
+.file-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 4px; margin-top: 4px; font-size: 13px; gap: 8px; }
+.file-item .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-item .factions { display: flex; gap: 4px; }
+.summary-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.summary-card h4 { color: #1e3a8a; margin-bottom: 8px; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; }
+.tag-pass { background: #d1fae5; color: #065f46; }
+.tag-warn { background: #fef3c7; color: #92400e; }
+.tag-fail { background: #fee2e2; color: #991b1b; }
+.tag-na { background: #e2e8f0; color: #475569; }
+.action-bar { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.link-box { background: #1e3a8a; color: #fff; padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 12px; word-break: break-all; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; vertical-align: top; }
+th { background: #f1f5f9; color: #334155; font-weight: 600; }
+.empty { text-align: center; color: #94a3b8; padding: 40px; }
+.readonly-no { background: #f1f5f9; color: #64748b; }
+@media (max-width: 768px) { .modal-content { padding: 16px; } .project-grid { grid-template-columns: 1fr; } header { padding: 16px 20px; } }
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>☀️ 上海电满家工商业项目管理平台</h1>
+<p>上海电满家工商业项目管理平台</p>
+</header>
+
+<div class="tabs">
+<div class="tab active" data-tab="projects">📁 项目列表</div>
+<div class="tab" data-tab="shareholders">👥 股东管理</div>
+<div class="tab" data-tab="summary">📊 评估汇总</div>
+</div>
+
+<!-- 项目列表面板 -->
+<div class="panel active" id="projects">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+<div class="section-title" style="border:none;margin:0;">所有项目</div>
+<button class="btn" onclick="showProjectModal()">+ 新建项目</button>
+</div>
+<div class="project-grid" id="projectGrid"></div>
+</div>
+
+<!-- 股东管理面板 -->
+<div class="panel" id="shareholders">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+<div class="section-title" style="border:none;margin:0;">股东列表</div>
+<button class="btn" onclick="showShareholderModal()">+ 添加股东</button>
+</div>
+<table>
+<thead>
+<tr><th>股东姓名</th><th>专属评估链接</th><th>已评估项目</th><th>操作</th></tr>
+</thead>
+<tbody id="shareholderTbody"></tbody>
+</table>
+</div>
+
+<!-- 汇总面板 -->
+<div class="panel" id="summary">
+<div class="section-title">评估汇总</div>
+<select id="summaryProjectSelect" onchange="renderSummary()" style="max-width:400px;margin-bottom:16px;">
+<option value="">选择项目...</option>
+</select>
+<div id="summaryContent"></div>
+</div>
+</div>
+
+<!-- 项目表单弹窗（新建+编辑共用） -->
+<div class="modal" id="projectModal">
+<div class="modal-content">
+<div class="modal-header">
+<h2 id="projectModalTitle">新建项目</h2>
+<button class="close-btn" onclick="closeModal('projectModal')">×</button>
+</div>
+<input type="hidden" id="editProjectId">
+<div class="form-group">
+<label>项目编号</label>
+<input type="text" id="pmNo" class="readonly-no" readonly>
+</div>
+<div class="form-group">
+<label>项目名称 *</label>
+<input type="text" id="pmName" placeholder="例如：佛山XX工厂屋顶光伏项目">
+</div>
+<div class="form-group">
+<label>项目地点</label>
+<input type="text" id="pmLocation" placeholder="例如：广东佛山市南海区">
+</div>
+<div class="form-group">
+<label>装机容量 (kW)</label>
+<input type="number" id="pmCapacity" placeholder="例如：500">
+</div>
+<div class="form-group">
+<label>项目描述</label>
+<textarea id="pmDesc" rows="3" placeholder="项目背景、客户信息等"></textarea>
+</div>
+<div class="form-group">
+<label>项目附件（Word / PPT / PDF / Excel）</label>
+<div id="pmAttachments" style="margin-bottom:8px;"></div>
+<div class="upload-zone" onclick="uploadProjectAttachment()">+ 点击上传项目附件</div>
+</div>
+<div class="action-bar">
+<button class="btn btn-success" onclick="saveProject()">保存</button>
+<button class="btn btn-secondary" onclick="closeModal('projectModal')">取消</button>
+</div>
+</div>
+</div>
+
+<!-- 股东弹窗 -->
+<div class="modal" id="shareholderModal">
+<div class="modal-content">
+<div class="modal-header">
+<h2>添加股东</h2>
+<button class="close-btn" onclick="closeModal('shareholderModal')">×</button>
+</div>
+<div class="form-group">
+<label>股东姓名 *</label>
+<input type="text" id="shName" placeholder="例如：张总">
+</div>
+<div class="form-group">
+<label>备注/职位</label>
+<input type="text" id="shNote" placeholder="例如：大股东 / 投资方">
+</div>
+<div class="action-bar">
+<button class="btn btn-success" onclick="createShareholder()">生成专属链接</button>
+<button class="btn btn-secondary" onclick="closeModal('shareholderModal')">取消</button>
+</div>
+</div>
+</div>
+
+<!-- 项目详情/上传材料弹窗 -->
+<div class="modal" id="projectDetailModal">
+<div class="modal-content">
+<div class="modal-header">
+<h2 id="projectDetailTitle">项目详情</h2>
+<button class="close-btn" onclick="closeModal('projectDetailModal')">×</button>
+</div>
+<div id="projectDetailContent"></div>
+</div>
+</div>
+
+<!-- 股东评估弹窗 -->
+<div class="modal" id="evalModal">
+<div class="modal-content">
+<div class="modal-header">
+<h2 id="evalTitle">项目评估</h2>
+<button class="close-btn" onclick="closeModal('evalModal')">×</button>
+</div>
+<div id="evalContent"></div>
+</div>
+</div>
+
+<script>
+const API = '/api';
+let projects = [];
+let shareholders = [];
+let evaluations = [];
+
+const EVAL_CONFIG = [
+  { key: 'property', title: '一、产权', items: ['产权人是否清晰、与项目主体一致','产权证是否齐全（房产证/不动产权证）','是否存在抵押、查封等权利限制','产权面积与项目屋顶面积是否匹配','土地使用权类型（出让/租赁）是否清晰'] },
+  { key: 'drawing', title: '二、图纸', items: ['屋顶平面图是否齐全','电气一次系统图是否齐全','电气二次系统图是否齐全','建筑结构图是否齐全','图纸版本与项目现状是否一致'] },
+  { key: 'electricity', title: '三、电费清单', items: ['近12个月电费清单是否齐全','月用电量是否稳定（无大幅波动）','峰谷用电比例是否合理','电价水平是否正常（无异常折扣或加价）','用电缴费方与产权人是否一致'] },
+  { key: 'category', title: '四、项目类别', items: ['项目类型是否清晰（自发自用/余电上网/全额上网）','所属行业是否明确','用电负荷与拟装容量是否匹配','客户经营状况是否正常（无破产/关停风险）','并网条件是否具备（变压器容量/线路）'] }
+];
+
+function escapeHtml(s) { return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+function fmtSize(b) { if (!b) return ''; if (b<1024) return b+'B'; if (b<1024*1024) return (b/1024).toFixed(1)+'KB'; return (b/1024/1024).toFixed(2)+'MB'; }
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+    if (t.dataset.tab === 'summary') renderSummary();
+  });
+});
+
+async function api(method, path, body, isForm) {
+  const opt = { method, headers: {} };
+  if (body && !isForm) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  else if (body && isForm) { opt.body = body; }
+  const r = await fetch(API + path, opt);
+  if (!r.ok) { const e = await r.json().catch(()=>({error:'请求失败'})); throw new Error(e.error||'请求失败'); }
+  return r.json();
+}
+
+async function loadAll() {
+  try {
+    projects = await api('GET', '/projects');
+    shareholders = await api('GET', '/shareholders');
+    evaluations = [];
+    projects.forEach(p => { p.materials = p.materials || { property: [], drawing: [], electricity: [], other: [] }; p.attachments = p.attachments || []; });
+    renderProjects();
+    renderShareholders();
+  } catch (e) { alert('加载失败：' + e.message + '\n请确认后端服务已启动'); }
+}
+
+// ============ 项目管理 ============
+let _pendingAttachments = [];
+let _editingProjectId = null;
+
+function uploadProjectAttachment() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  input.accept = '.doc,.docx,.ppt,.pptx,.pdf,.xls,.xlsx';
+  input.onchange = async (e) => {
+    // 新建项目时暂存文件，编辑项目时直接上传
+    const files = Array.from(e.target.files);
+    const allowedExt = ['.doc','.docx','.ppt','.pptx','.pdf','.xls','.xlsx'];
+    const valid = files.filter(f => allowedExt.includes(path_ext(f.name).toLowerCase()));
+    if (valid.length < files.length) {
+      alert('仅支持 Word、PPT、PDF、Excel 格式的文件，已自动过滤不支持的文件');
+    }
+    if (!valid.length) return;
+    if (_editingProjectId) {
+      // 编辑模式：直接上传到后端
+      const fd = new FormData();
+      valid.forEach(f => fd.append('files', f));
+      try {
+        const updated = await api('POST', `/projects/${_editingProjectId}/attachments`, fd, true);
+        const idx = projects.findIndex(x => x.id === _editingProjectId);
+        if (idx >= 0) projects[idx] = updated;
+        renderExistingAttachments(_editingProjectId);
+      } catch (err) { alert('附件上传失败：' + err.message); }
+    } else {
+      // 新建模式：暂存到列表
+      _pendingAttachments.push(...valid);
+      renderPendingAttachments();
+    }
+  };
+  input.click();
+}
+
+function path_ext(name) { return name.includes('.') ? '.' + name.split('.').pop() : ''; }
+
+function fileIcon(ext) {
+  const map = { '.pdf': '📕', '.doc': '📘', '.docx': '📘', '.ppt': '📙', '.pptx': '📙', '.xls': '📗', '.xlsx': '📗' };
+  return map[ext] || '📄';
+}
+
+function renderPendingAttachments() {
+  const container = document.getElementById('pmAttachments');
+  if (!_pendingAttachments.length) { container.innerHTML = ''; return; }
+  container.innerHTML = _pendingAttachments.map((f, i) => `
+    <div class="file-item">
+      <span class="fname">${fileIcon(path_ext(f.name))} ${escapeHtml(f.name)}</span>
+      <span>${fmtSize(f.size)}</span>
+      <span class="factions"><button class="btn btn-sm btn-danger" onclick="removePendingAttachment(${i})">删除</button></span>
+    </div>
+  `).join('');
+}
+
+function removePendingAttachment(idx) {
+  _pendingAttachments.splice(idx, 1);
+  renderPendingAttachments();
+}
+
+function renderExistingAttachments(pid) {
+  const p = projects.find(x => x.id === pid);
+  const container = document.getElementById('pmAttachments');
+  if (!p || !p.attachments || !p.attachments.length) { container.innerHTML = ''; return; }
+  container.innerHTML = p.attachments.map((f, i) => `
+    <div class="file-item">
+      <span class="fname">${fileIcon(f.ext || path_ext(f.name))} <a href="${f.url}" target="_blank">${escapeHtml(f.name)}</a></span>
+      <span>${fmtSize(f.size)}</span>
+      <span class="factions"><button class="btn btn-sm btn-danger" onclick="deleteProjectAttachment('${pid}',${i})">删除</button></span>
+    </div>
+  `).join('');
+}
+
+async function deleteProjectAttachment(pid, idx) {
+  if (!confirm('确定删除该附件？')) return;
+  try {
+    const updated = await api('DELETE', `/projects/${pid}/attachments/${idx}`);
+    const i = projects.findIndex(x => x.id === pid);
+    if (i >= 0) projects[i] = updated;
+    renderExistingAttachments(pid);
+  } catch (e) { alert('删除失败：' + e.message); }
+}
+async function showProjectModal(id) {
+  document.getElementById('editProjectId').value = id || '';
+  document.getElementById('pmName').value = '';
+  document.getElementById('pmLocation').value = '';
+  document.getElementById('pmCapacity').value = '';
+  document.getElementById('pmDesc').value = '';
+  _pendingAttachments = [];
+  renderPendingAttachments();
+  if (id) {
+    document.getElementById('projectModalTitle').textContent = '编辑项目';
+    const p = projects.find(x => x.id === id);
+    if (p) {
+      document.getElementById('pmNo').value = p.no;
+      document.getElementById('pmName').value = p.name || '';
+      document.getElementById('pmLocation').value = p.location || '';
+      document.getElementById('pmCapacity').value = p.capacity || '';
+      document.getElementById('pmDesc').value = p.desc || '';
+      _editingProjectId = id;
+      renderExistingAttachments(id);
+    }
+  } else {
+    document.getElementById('projectModalTitle').textContent = '新建项目';
+    const r = await api('GET', '/projects/next-no');
+    document.getElementById('pmNo').value = r.no;
+    _editingProjectId = null;
+  }
+  openModal('projectModal');
+}
+
+async function saveProject() {
+  const id = document.getElementById('editProjectId').value;
+  const body = {
+    name: document.getElementById('pmName').value.trim(),
+    location: document.getElementById('pmLocation').value.trim(),
+    capacity: document.getElementById('pmCapacity').value.trim(),
+    desc: document.getElementById('pmDesc').value.trim()
+  };
+  if (!body.name) { alert('请填写项目名称'); return; }
+  try {
+    let projectId = id;
+    if (id) {
+      const p = await api('PUT', '/projects/' + id, body);
+      const idx = projects.findIndex(x => x.id === id);
+      if (idx >= 0) projects[idx] = p;
+    } else {
+      const p = await api('POST', '/projects', body);
+      projects.push(p);
+      projectId = p.id;
+    }
+    // 上传暂存的附件
+    if (_pendingAttachments.length && projectId) {
+      const fd = new FormData();
+      _pendingAttachments.forEach(f => fd.append('files', f));
+      const updated = await api('POST', `/projects/${projectId}/attachments`, fd, true);
+      const idx = projects.findIndex(x => x.id === projectId);
+      if (idx >= 0) projects[idx] = updated;
+      _pendingAttachments = [];
+    }
+    closeModal('projectModal');
+    renderProjects();
+  } catch (e) { alert('保存失败：' + e.message); }
+}
+
+function getProjectStatus(p) {
+  const evsForP = JSON.parse(localStorage.getItem('cache_evals_' + p.id) || '[]');
+  if (!shareholders.length) return { cls: 'status-pending', text: '待评估' };
+  const done = evsForP.length;
+  if (done === 0) return { cls: 'status-pending', text: '待评估' };
+  if (done >= shareholders.length) {
+    const avg = evsForP.reduce((s,e)=>s+(Number(e.investPercent)||0),0) / evsForP.length;
+    if (avg >= 80) return { cls: 'status-done', text: `✅ 通过 ${avg.toFixed(0)}%` };
+    return { cls: 'status-fail', text: `❌ 未达 80% (${avg.toFixed(0)}%)` };
+  }
+  return { cls: 'status-progress', text: `评估中 ${done}/${shareholders.length}` };
+}
+
+function renderProjects() {
+  const grid = document.getElementById('projectGrid');
+  if (!projects.length) { grid.innerHTML = '<div class="empty">还没有项目，点击右上角"新建项目"开始</div>'; return; }
+  grid.innerHTML = projects.map(p => {
+    const st = getProjectStatus(p);
+    return `<div class="project-card">
+      <h3>${escapeHtml(p.no)} - ${escapeHtml(p.name)}</h3>
+      <div class="meta">📍 ${escapeHtml(p.location||'未填')}<br>⚡ ${escapeHtml(p.capacity||'?')} kW<br>🕐 ${new Date(p.createdAt).toLocaleDateString()}</div>
+      <div style="margin-top:8px;"><span class="status-badge ${st.cls}">${st.text}</span></div>
+      <div class="actions">
+        <button class="btn btn-sm" onclick="openProjectDetail('${p.id}')">📁 详情/上传</button>
+        <button class="btn btn-sm btn-outline" onclick="showProjectModal('${p.id}')">✏️ 编辑</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteProject('${p.id}')">🗑 删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteProject(id) {
+  if (!confirm('确定删除该项目？此操作不可恢复')) return;
+  try {
+    await api('DELETE', '/projects/' + id);
+    projects = projects.filter(x => x.id !== id);
+    renderProjects();
+  } catch (e) { alert('删除失败：' + e.message); }
+}
+
+function openProjectDetail(pid) {
+  const p = projects.find(x => x.id === pid);
+  if (!p) return;
+  document.getElementById('projectDetailTitle').textContent = p.no + ' - ' + p.name;
+  const mat = p.materials || { property: [], drawing: [], electricity: [], other: [] };
+  document.getElementById('projectDetailContent').innerHTML = `
+    <div class="form-group"><label>项目地点</label><div>${escapeHtml(p.location||'未填')}</div></div>
+    <div class="form-group"><label>装机容量</label><div>${escapeHtml(p.capacity||'未填')} kW</div></div>
+    <div class="form-group"><label>项目描述</label><div>${escapeHtml(p.desc||'无')}</div></div>
+    ${(p.attachments && p.attachments.length) ? `<h3 style="margin:20px 0 12px;color:#1e3a8a;">📎 项目附件</h3><div class="eval-block"><div class="file-list">${p.attachments.map((f, i) => `<div class="file-item"><span class="fname">${fileIcon(f.ext || path_ext(f.name))} <a href="${f.url}" target="_blank">${escapeHtml(f.name)}</a></span><span>${fmtSize(f.size)}</span><span class="factions"><button class="btn btn-sm btn-danger" onclick="deleteProjectAttachment('${pid}',${i})">删除</button></span></div>`).join('')}</div></div>` : ''}
+    <h3 style="margin:20px 0 12px;color:#1e3a8a;">📎 项目材料</h3>
+    ${['property','drawing','electricity','other'].map((t, i) => {
+      const names = ['产权材料','图纸材料','电费清单','其他材料'];
+      const items = (mat[t]||[]).map((f, idx) => `<div class="file-item"><span class="fname">📄 <a href="${f.url||'#'}" target="_blank">${escapeHtml(f.name)}</a></span><span>${fmtSize(f.size)}</span><span class="factions"><button class="btn btn-sm btn-danger" onclick="deleteMaterial('${pid}','${t}',${idx})">删除</button></span></div>`).join('');
+      return `<div class="eval-block">
+        <h4>${names[i]}</h4>
+        <div class="upload-zone" onclick="uploadMaterial('${pid}','${t}')">+ 点击上传${names[i]}</div>
+        <div class="file-list">${items || '<p style="color:#94a3b8;font-size:12px;margin-top:6px;">暂无材料</p>'}</div>
+      </div>`;
+    }).join('')}
+    <h3 style="margin:20px 0 12px;color:#1e3a8a;">📊 评估进度</h3>
+    <div id="evalProgress_${pid}"></div>
+    <div class="action-bar">
+      <button class="btn btn-outline" onclick="showProjectModal('${pid}')">✏️ 编辑项目信息</button>
+      <button class="btn btn-secondary" onclick="closeModal('projectDetailModal')">关闭</button>
+    </div>
+  `;
+  loadProjectEvalProgress(pid);
+  openModal('projectDetailModal');
+}
+
+async function uploadMaterial(pid, type) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  input.onchange = async (e) => {
+    const fd = new FormData();
+    Array.from(e.target.files).forEach(f => fd.append('files', f));
+    try {
+      const p = await api('POST', `/projects/${pid}/materials/${type}`, fd, true);
+      const idx = projects.findIndex(x => x.id === pid);
+      if (idx >= 0) projects[idx] = p;
+      openProjectDetail(pid);
+    } catch (err) { alert('上传失败：' + err.message); }
+  };
+  input.click();
+}
+
+async function deleteMaterial(pid, type, idx) {
+  if (!confirm('确定删除该材料？')) return;
+  try {
+    const p = await api('DELETE', `/projects/${pid}/materials/${type}/${idx}`);
+    const i = projects.findIndex(x => x.id === pid);
+    if (i >= 0) projects[i] = p;
+    openProjectDetail(pid);
+  } catch (e) { alert('删除失败：' + e.message); }
+}
+
+async function loadProjectEvalProgress(pid) {
+  const target = document.getElementById('evalProgress_' + pid);
+  if (!target) return;
+  try {
+    const r = await api('GET', '/summary/' + pid);
+    const evs = r.evaluations || [];
+    localStorage.setItem('cache_evals_' + pid, JSON.stringify(evs));
+    if (!evs.length) { target.innerHTML = '<p style="color:#94a3b8;">尚无股东评估</p>'; return; }
+    const avgPct = evs.reduce((s,e)=>s+(Number(e.investPercent)||0),0) / evs.length;
+    const passBadge = avgPct >= 80
+      ? `<span class="status-badge status-done" style="margin-left:8px;">✅ 通过 ${avgPct.toFixed(0)}%</span>`
+      : `<span class="status-badge status-fail" style="margin-left:8px;">❌ 未达 ${avgPct.toFixed(0)}%</span>`;
+    target.innerHTML = `<div style="margin-bottom:10px;padding:8px 12px;background:#f1f5f9;border-radius:6px;">股东平均投资意愿 <strong style="color:#1e3a8a;font-size:16px;">${avgPct.toFixed(0)}%</strong> ${passBadge}</div>` + evs.map(e => {
+      const adviceMap = { recommend: ['✅ 建议投资', '#d1fae5', '#065f46'], cautious: ['⚠️ 谨慎评估', '#fef3c7', '#92400e'], reject: ['❌ 不建议', '#fee2e2', '#991b1b'] };
+      const a = adviceMap[e.advice] || ['未表态', '#e2e8f0', '#475569'];
+      const pct = Number(e.investPercent) || 0;
+      return `<div class="summary-card">
+        <h4>${escapeHtml(e.shareholderName)} <span class="status-badge" style="margin-left:8px;background:${a[1]};color:${a[2]};">${a[0]}</span> <span class="status-badge" style="margin-left:6px;background:#1e3a8a;color:#fff;">意愿 ${pct}%</span></h4>
+        <div style="font-size:12px;color:#64748b;margin-bottom:8px;">${new Date(e.createdAt).toLocaleString()}</div>
+        <div>${escapeHtml(e.overall||'（无总评）')}</div>
+      </div>`;
+    }).join('');
+    renderProjects();
+  } catch (e) { target.innerHTML = '<p style="color:#ef4444;">加载评估失败</p>'; }
+}
+
+// ============ 股东管理 ============
+function showShareholderModal() {
+  document.getElementById('shName').value = '';
+  document.getElementById('shNote').value = '';
+  openModal('shareholderModal');
+}
+
+async function createShareholder() {
+  const name = document.getElementById('shName').value.trim();
+  const note = document.getElementById('shNote').value.trim();
+  if (!name) { alert('请填写股东姓名'); return; }
+  try {
+    const sh = await api('POST', '/shareholders', { name, note });
+    shareholders.push({ ...sh, evalCount: 0 });
+    closeModal('shareholderModal');
+    renderShareholders();
+    alert('股东添加成功');
+  } catch (e) { alert('添加失败：' + e.message); }
+}
+
+function renderShareholders() {
+  const tbody = document.getElementById('shareholderTbody');
+  if (!shareholders.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">还没有股东</td></tr>'; return; }
+  tbody.innerHTML = shareholders.map(sh => {
+    const baseUrl = window.location.origin;
+    const link = `${baseUrl}/?sh=${sh.token}`;
+    return `<tr>
+      <td><strong>${escapeHtml(sh.name)}</strong><br><span style="color:#64748b;font-size:12px;">${escapeHtml(sh.note||'')}</span></td>
+      <td><div class="link-box">${escapeHtml(link)}</div><button class="btn btn-sm" style="margin-top:6px;" onclick="copyText('${link}')">复制链接</button></td>
+      <td>${sh.evalCount||0} 个项目</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteShareholder('${sh.id}')">删除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function copyText(t) {
+  navigator.clipboard.writeText(t).then(() => alert('链接已复制')).catch(() => prompt('请手动复制：', t));
+}
+
+async function deleteShareholder(id) {
+  if (!confirm('确定删除该股东？相关评估记录将一并清除')) return;
+  try {
+    await api('DELETE', '/shareholders/' + id);
+    shareholders = shareholders.filter(x => x.id !== id);
+    renderShareholders();
+  } catch (e) { alert('删除失败：' + e.message); }
+}
+
+// ============ 评估汇总 ============
+async function renderSummary() {
+  const sel = document.getElementById('summaryProjectSelect');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">选择项目...</option>' + projects.map(p => `<option value="${p.id}">${escapeHtml(p.no)} - ${escapeHtml(p.name)}</option>`).join('');
+  if (prev) sel.value = prev;
+  const pid = sel.value;
+  const content = document.getElementById('summaryContent');
+  if (!pid) { content.innerHTML = ''; return; }
+  try {
+    const r = await api('GET', '/summary/' + pid);
+    const evs = r.evaluations;
+    if (!evs.length) { content.innerHTML = '<p class="empty">该项目尚无评估记录</p>'; return; }
+    const p = r.project;
+    const avgPct = evs.reduce((s,e)=>s+(Number(e.investPercent)||0),0) / evs.length;
+    const passFlag = avgPct >= 80;
+    const resultBadge = passFlag
+      ? `<span class="status-badge status-done" style="font-size:14px;padding:6px 16px;">✅ 评估通过 · 平均意愿 ${avgPct.toFixed(0)}%</span>`
+      : `<span class="status-badge status-fail" style="font-size:14px;padding:6px 16px;">❌ 评估未通过 · 平均意愿 ${avgPct.toFixed(0)}%</span>`;
+    let html = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <h3 style="color:#1e3a8a;margin:0;">${escapeHtml(p.no)} - ${escapeHtml(p.name)} 评估汇总</h3>
+      <div>${resultBadge}</div>
+    </div>`;
+    html += `<div class="action-bar" style="margin-bottom:16px;">
+      <button class="btn btn-success" onclick="exportSummary('${pid}')">📥 导出汇总报告</button>
+    </div>`;
+    html += evs.map(e => {
+      const adviceMap = { recommend: ['✅ 建议投资', '#d1fae5', '#065f46'], cautious: ['⚠️ 谨慎评估', '#fef3c7', '#92400e'], reject: ['❌ 不建议', '#fee2e2', '#991b1b'] };
+      const a = adviceMap[e.advice] || ['未表态', '#e2e8f0', '#475569'];
+      const tagMap = { pass: 'tag-pass', warn: 'tag-warn', fail: 'tag-fail', na: 'tag-na' };
+      const textMap = { pass: '通过', warn: '有问题', fail: '不通过', na: '不适用' };
+      let blocks = '';
+      EVAL_CONFIG.forEach(cfg => {
+        let items = '';
+        cfg.items.forEach((it, idx) => {
+          const v = (e.checks && e.checks[cfg.key] && e.checks[cfg.key][idx]) || '';
+          const t = v ? `<span class="tag ${tagMap[v]}">${textMap[v]}</span>` : '<span class="tag tag-na">未评</span>';
+          items += `<li style="margin:4px 0;">${t} ${escapeHtml(it)}</li>`;
+        });
+        const note = e.notes && e.notes[cfg.key] ? `<div style="margin-top:8px;padding:8px;background:#fff;border-radius:4px;font-size:13px;color:#475569;">📝 ${escapeHtml(e.notes[cfg.key])}</div>` : '';
+        blocks += `<div style="margin-bottom:12px;"><strong>${cfg.title}</strong><ul style="list-style:none;margin:8px 0;padding-left:8px;font-size:13px;">${items}</ul>${note}</div>`;
+      });
+      const pct = Number(e.investPercent) || 0;
+      return `<div class="summary-card">
+        <h4>${escapeHtml(e.shareholderName)} <span class="status-badge" style="margin-left:8px;background:${a[1]};color:${a[2]};">${a[0]}</span> <span class="status-badge" style="margin-left:6px;background:#1e3a8a;color:#fff;">投资意愿 ${pct}%</span></h4>
+        <div style="font-size:12px;color:#64748b;margin-bottom:8px;">${new Date(e.createdAt).toLocaleString()}</div>
+        ${blocks}
+        <div style="margin-top:12px;padding:12px;background:#f0f9ff;border-radius:6px;">
+          <strong>整体评价：</strong>${escapeHtml(e.overall||'（无）')}
+        </div>
+      </div>`;
+    }).join('');
+    content.innerHTML = html;
+  } catch (e) { content.innerHTML = '<p class="empty">加载失败</p>'; }
+}
+
+function exportSummary(pid) {
+  api('GET', '/summary/' + pid).then(r => {
+    const p = r.project, evs = r.evaluations;
+    if (!evs.length) { alert('无评估记录可导出'); return; }
+    const adviceMap = { recommend: '✅ 建议投资', cautious: '⚠️ 谨慎评估', reject: '❌ 不建议' };
+    const textMap = { pass: '✅通过', warn: '⚠️有问题', fail: '❌不通过', na: '➖不适用', '': '未评' };
+    let md = `# 上海电满家工商业项目管理平台 · 评估汇总报告\n\n`;
+    md += `**项目编号：** ${p.no}\n**项目名称：** ${p.name}\n**项目地点：** ${p.location||'未填'}\n**装机容量：** ${p.capacity||'未填'} kW\n**导出时间：** ${new Date().toLocaleString()}\n\n---\n\n`;
+    evs.forEach((e, i) => {
+      md += `## ${i+1}. ${e.shareholderName} 的评估\n\n`;
+      md += `**投资建议：** ${adviceMap[e.advice]||'未表态'}\n\n`;
+      md += `**评估时间：** ${new Date(e.createdAt).toLocaleString()}\n\n`;
+      EVAL_CONFIG.forEach(cfg => {
+        md += `### ${cfg.title}\n\n`;
+        cfg.items.forEach((it, idx) => {
+          const v = (e.checks && e.checks[cfg.key] && e.checks[cfg.key][idx]) || '';
+          md += `- ${textMap[v]} - ${it}\n`;
+        });
+        if (e.notes && e.notes[cfg.key]) md += `\n补充说明：${e.notes[cfg.key]}\n`;
+        md += `\n`;
+      });
+      md += `### 整体评价\n\n${e.overall}\n\n`;
+      md += `### 投资意愿\n\n**${e.investPercent != null ? e.investPercent : '未填'}%**\n\n---\n\n`;
+    });
+    const avgPct2 = evs.reduce((s,e)=>s+(Number(e.investPercent)||0),0) / evs.length;
+    md += `\n## 评估结果\n\n**股东平均投资意愿：${avgPct2.toFixed(0)}%**\n\n**评估结论：${avgPct2 >= 80 ? '✅ 评估通过' : '❌ 评估未通过（未达 80%）'}**\n`;
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${p.no}_评估汇总_${new Date().toISOString().slice(0,10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+// ============ 股东评估入口 ============
+async function checkShareholderLink() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('sh');
+  if (!token) return;
+  try {
+    const r = await fetch(API + '/shareholder/' + token);
+    if (!r.ok) { document.body.innerHTML = '<div style="text-align:center;padding:60px;color:#ef4444;">无效的评估链接</div>'; return; }
+    const data = await r.json();
+    document.querySelector('.tabs').style.display = 'none';
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const evalPanel = document.createElement('div');
+    evalPanel.className = 'panel active';
+    evalPanel.innerHTML = `<div class="section-title">${escapeHtml(data.shareholder.name)}，您好</div><p style="color:#64748b;margin-bottom:16px;">请选择要评估的项目：</p><div class="project-grid" id="shProjectGrid"></div>`;
+    document.querySelector('.container').appendChild(evalPanel);
+    const grid = document.getElementById('shProjectGrid');
+    if (!data.projects.length) { grid.innerHTML = '<p class="empty">暂无项目</p>'; return; }
+    grid.innerHTML = data.projects.map(p => `<div class="project-card">
+      <h3>${escapeHtml(p.no)} - ${escapeHtml(p.name)}</h3>
+      <div class="meta">📍 ${escapeHtml(p.location||'未填')}<br>⚡ ${escapeHtml(p.capacity||'?')} kW</div>
+      <div style="margin-top:8px;"><span class="status-badge ${p.evaluated?'status-done':'status-pending'}">${p.evaluated?'✓ 已评估':'待评估'}</span></div>
+      <div class="actions"><button class="btn btn-sm" onclick="openShareholderEval('${token}','${p.id}')">📝 评估</button></div>
+    </div>`).join('');
+  } catch (e) { document.body.innerHTML = '<div style="text-align:center;padding:60px;color:#ef4444;">加载失败</div>'; }
+}
+
+async function openShareholderEval(token, pid) {
+  try {
+    const r = await api('GET', `/shareholder/${token}/project/${pid}`);
+    renderEvalForm(token, pid, r.project, r.existing);
+  } catch (e) { alert('加载失败：' + e.message); }
+}
+
+function renderEvalForm(token, pid, p, existing) {
+  document.getElementById('evalTitle').textContent = `${p.no} - ${p.name}`;
+  const mat = p.materials || { property: [], drawing: [], electricity: [], other: [] };
+  const hasMat = (k) => (mat[k] && mat[k].length) ? mat[k].map(f => `<div class="file-item"><span class="fname">📄 <a href="${f.url||'#'}" target="_blank">${escapeHtml(f.name)}</a></span><span>${fmtSize(f.size)}</span></div>`).join('') : '<p style="color:#94a3b8;font-size:12px;">暂无材料</p>';
+  const blocks = EVAL_CONFIG.map(cfg => {
+    const checked = existing && existing.checks && existing.checks[cfg.key] ? existing.checks[cfg.key] : {};
+    return `<div class="eval-block">
+      <h4>${cfg.title}</h4>
+      ${cfg.items.map((item, idx) => {
+        const v = checked[idx] || '';
+        return `<div class="check-item">
+          <label>${escapeHtml(item)}</label>
+          <div class="radio-group">
+            <label><input type="radio" name="ck_${cfg.key}_${idx}" value="pass" ${v==='pass'?'checked':''}>通过</label>
+            <label><input type="radio" name="ck_${cfg.key}_${idx}" value="warn" ${v==='warn'?'checked':''}>有问题</label>
+            <label><input type="radio" name="ck_${cfg.key}_${idx}" value="fail" ${v==='fail'?'checked':''}>不通过</label>
+            <label><input type="radio" name="ck_${cfg.key}_${idx}" value="na" ${v==='na'?'checked':''}>不适用</label>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="form-group" style="margin-top:12px;">
+        <label>本板块补充说明（可选）</label>
+        <textarea data-note="${cfg.key}" rows="2" placeholder="如有需要说明的问题...">${existing && existing.notes && existing.notes[cfg.key] ? escapeHtml(existing.notes[cfg.key]) : ''}</textarea>
+      </div>
+      <div class="upload-zone" onclick="uploadEvalMaterial('${token}','${pid}','${cfg.key}')">+ 上传本板块补充材料</div>
+      <div class="file-list">${existing && existing.materials && existing.materials[cfg.key] ? existing.materials[cfg.key].map(f => `<div class="file-item"><span class="fname">📄 <a href="${f.url||'#'}" target="_blank">${escapeHtml(f.name)}</a></span><span>${fmtSize(f.size)}</span></div>`).join('') : ''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('evalContent').innerHTML = `
+    ${(p.attachments && p.attachments.length) ? `<h3 style="color:#1e3a8a;margin-bottom:12px;">📎 项目附件</h3><div class="eval-block"><h4>项目描述附件（Word/PPT/PDF）</h4>${p.attachments.map(f => `<div class="file-item"><span class="fname">${fileIcon(f.ext || path_ext(f.name))} <a href="${f.url}" target="_blank">${escapeHtml(f.name)}</a></span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>` : ''}
+    <h3 style="color:#1e3a8a;margin-bottom:12px;">📎 项目现有材料</h3>
+    <div class="eval-block"><h4>产权材料</h4>${hasMat('property')}</div>
+    <div class="eval-block"><h4>图纸材料</h4>${hasMat('drawing')}</div>
+    <div class="eval-block"><h4>电费清单</h4>${hasMat('electricity')}</div>
+    <div class="eval-block"><h4>其他材料</h4>${hasMat('other')}</div>
+    <h3 style="color:#1e3a8a;margin:20px 0 12px;">📝 评估打分</h3>
+    ${blocks}
+    <div class="eval-block" style="border-left-color:#10b981;">
+      <h4>五、整体评价</h4>
+      <div class="form-group">
+        <label>投资建议 *</label>
+        <select id="overallAdvice">
+          <option value="recommend" ${existing && existing.advice==='recommend'?'selected':''}>✅ 建议投资</option>
+          <option value="cautious" ${existing && existing.advice==='cautious'?'selected':''}>⚠️ 谨慎评估</option>
+          <option value="reject" ${existing && existing.advice==='reject'?'selected':''}>❌ 不建议</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>整体评价 *</label>
+        <textarea id="overallComment" rows="4" placeholder="请对项目整体写下您的评价...">${existing && existing.overall ? escapeHtml(existing.overall) : ''}</textarea>
+      </div>
+      <div class="form-group">
+        <label>投资意愿百分比 *（0-100，项目平均达 80% 视为评估通过）</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="range" id="investPercentRange" min="0" max="100" step="5" value="${existing && existing.investPercent != null ? existing.investPercent : 50}" style="flex:1;" oninput="document.getElementById('investPercent').value=this.value;document.getElementById('pctLabel').textContent=this.value+'%';">
+          <input type="number" id="investPercent" min="0" max="100" value="${existing && existing.investPercent != null ? existing.investPercent : ''}" placeholder="0-100" style="width:90px;" oninput="document.getElementById('investPercentRange').value=this.value;document.getElementById('pctLabel').textContent=this.value+'%';">
+          <span id="pctLabel" style="font-weight:600;color:#1e3a8a;min-width:40px;">${existing && existing.investPercent != null ? existing.investPercent + '%' : '0%'}</span>
+        </div>
+      </div>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-success" onclick="submitShareholderEval('${token}','${pid}')">${existing?'更新评估':'提交评估'}</button>
+      <button class="btn btn-secondary" onclick="closeModal('evalModal')">取消</button>
+    </div>
+  `;
+  openModal('evalModal');
+}
+
+async function uploadEvalMaterial(token, pid, type) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  input.onchange = async (e) => {
+    const fd = new FormData();
+    Array.from(e.target.files).forEach(f => fd.append('files', f));
+    try {
+      await api('POST', `/shareholder/${token}/project/${pid}/materials/${type}`, fd, true);
+      const r = await api('GET', `/shareholder/${token}/project/${pid}`);
+      renderEvalForm(token, pid, r.project, r.existing);
+    } catch (err) { alert('上传失败：' + err.message); }
+  };
+  input.click();
+}
+
+async function submitShareholderEval(token, pid) {
+  const checks = {}, notes = {};
+  EVAL_CONFIG.forEach(cfg => {
+    checks[cfg.key] = {};
+    cfg.items.forEach((it, idx) => {
+      const r = document.querySelector(`input[name="ck_${cfg.key}_${idx}"]:checked`);
+      checks[cfg.key][idx] = r ? r.value : '';
+    });
+    const n = document.querySelector(`textarea[data-note="${cfg.key}"]`);
+    notes[cfg.key] = n ? n.value : '';
+  });
+  const advice = document.getElementById('overallAdvice').value;
+  const overall = document.getElementById('overallComment').value.trim();
+  const investPercent = document.getElementById('investPercent').value;
+  if (!overall) { alert('请填写整体评价'); return; }
+  if (investPercent === '' || isNaN(Number(investPercent))) { alert('请填写投资意愿百分比（0-100）'); return; }
+  try {
+    await api('POST', `/shareholder/${token}/project/${pid}/eval`, { checks, notes, advice, overall, investPercent });
+    closeModal('evalModal');
+    alert('评估已提交');
+    checkShareholderLink();
+  } catch (e) { alert('提交失败：' + e.message); }
+}
+
+loadAll().then(checkShareholderLink);
+</script>
+</body>
+</html>
