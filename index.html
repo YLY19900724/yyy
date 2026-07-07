@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>上海电满家工商业项目管理平台</title>
+<title>工商业查询1.0版本</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f5f7fa; color: #222; padding: 20px; }
@@ -81,8 +81,8 @@ th { background: #f1f5f9; color: #334155; font-weight: 600; }
 <body>
 <div class="container">
 <header>
-<h1>☀️ 上海电满家工商业项目管理平台</h1>
-<p>上海电满家工商业项目管理平台</p>
+<h1>☀️ 工商业查询1.0版本</h1>
+<p>工商业查询1.0版本</p>
 </header>
 
 <div class="tabs">
@@ -636,7 +636,7 @@ function exportSummary(pid) {
     if (!evs.length) { alert('无评估记录可导出'); return; }
     const adviceMap = { recommend: '✅ 建议投资', cautious: '⚠️ 谨慎评估', reject: '❌ 不建议' };
     const textMap = { pass: '✅通过', warn: '⚠️有问题', fail: '❌不通过', na: '➖不适用', '': '未评' };
-    let md = `# 上海电满家工商业项目管理平台 · 评估汇总报告\n\n`;
+    let md = `# 工商业查询1.0版本 · 评估汇总报告\n\n`;
     md += `**项目编号：** ${p.no}\n**项目名称：** ${p.name}\n**项目地点：** ${p.location||'未填'}\n**装机容量：** ${p.capacity||'未填'} kW\n**导出时间：** ${new Date().toLocaleString()}\n\n---\n\n`;
     evs.forEach((e, i) => {
       md += `## ${i+1}. ${e.shareholderName} 的评估\n\n`;
